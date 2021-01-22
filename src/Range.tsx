@@ -43,7 +43,7 @@ class Range extends React.Component<IProps> {
   state = {
     draggedTrackPos: [-1, -1],
     draggedThumbIndex: -1,
-    thumbZIndexes: new Array(this.props.values.length).fill(0).map((t, i) => i),
+    thumbZIndexes: new Array(this.props?.values?.length || 0).fill(0).map((t, i) => i),
     isChanged: false,
     markOffsets: []
   };
