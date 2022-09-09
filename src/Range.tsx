@@ -664,7 +664,7 @@ class Range extends React.Component<IProps> {
               ? isVertical(this.props.direction)
                 ? 'ns-resize'
                 : 'ew-resize'
-              : values.length === 1 && !disabled
+              : Array.isArray(values) && values.length === 1 && !disabled
               ? 'pointer'
               : 'inherit'
         },
