@@ -13,8 +13,8 @@ declare class Range extends React.Component<IProps> {
     };
     trackRef: React.RefObject<HTMLElement>;
     thumbRefs: React.RefObject<HTMLElement>[];
-    markRefs: React.RefObject<HTMLElement>[];
-    numOfMarks: number;
+    markRefs?: React.RefObject<HTMLElement>[];
+    numOfMarks?: number;
     resizeObserver: any;
     schdOnMouseMove: (e: MouseEvent) => void;
     schdOnTouchMove: (e: TouchEvent) => void;
@@ -53,6 +53,7 @@ declare class Range extends React.Component<IProps> {
     normalizeValue: (value: number, index: number) => number;
     onEnd: (e: Event) => null | undefined;
     fireOnFinalChange: () => void;
+    updateMarkRefs: (props: IProps) => void;
     calculateMarkOffsets: () => void;
     render(): React.ReactNode;
 }
