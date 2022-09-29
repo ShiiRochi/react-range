@@ -57,7 +57,7 @@ class Range extends React.Component<IProps> {
     this.schdOnMouseMove = schd(this.onMouseMove);
     this.schdOnTouchMove = schd(this.onTouchMove);
     this.schdOnEnd = schd(this.onEnd);
-    this.thumbRefs = props.values.map(() => React.createRef<HTMLElement>());
+    this.thumbRefs = Array.isArray(props.values) ? props.values.map(() => React.createRef<HTMLElement>()) : [];
     this.updateMarkRefs(props);
   }
 
@@ -233,6 +233,9 @@ class Range extends React.Component<IProps> {
 
   onMouseDownTrack = (e: React.MouseEvent) => {
     if (e.button !== 0) return;
+
+    const { values, draggableTrack, direction } = this.props;
+
     e.persist();
     e.preventDefault();
     this.addMouseEvents(e.nativeEvent);
@@ -250,6 +253,11 @@ class Range extends React.Component<IProps> {
         },
         () => this.onMove(e.clientX, e.clientY)
       );
+      // case when no value has been passed
+    } else if (values.length === 0) {
+      this.setState({ draggedThumbIndex: -1 }, () => {
+        this.onMove(e.clientX, e.clientY);
+      });
     } else {
       // get the index of the thumb that is closest to the place where the track is clicked
       const draggedThumbIndex = getClosestThumbIndex(
@@ -291,6 +299,10 @@ class Range extends React.Component<IProps> {
         },
         () => this.onMove(e.touches[0].clientX, e.touches[0].clientY)
       );
+    } else if (this.props.values.length === 0) {
+      this.setState({ draggedThumbIndex: -1 }, () => {
+        this.onMove(e.touches[0].clientX, e.touches[0].clientY);
+      });
     } else {
       // get the index of the thumb that is closest to the place where the track is clicked
       const draggedThumbIndex = getClosestThumbIndex(
@@ -413,15 +425,19 @@ class Range extends React.Component<IProps> {
     );
   };
 
+  /**
+   * It moves thumb(-s) to a given clientX and clientY on track
+   */
   onMove = (clientX: number, clientY: number) => {
     const { draggedThumbIndex, draggedTrackPos } = this.state;
     const { direction, min, max, onChange, values, step, rtl } = this.props;
-    if (
-      draggedThumbIndex === -1 &&
-      draggedTrackPos[0] === -1 &&
-      draggedTrackPos[1] === -1
-    )
-      return null;
+
+    // prevent this case only if values are empty,
+    // thus it will create one new value
+    if (values.length > 0) {
+      if (draggedThumbIndex === -1 && draggedTrackPos[0] === -1 && draggedTrackPos[1] === -1) return null;
+    }
+
     const trackElement = this.trackRef.current!;
     // If component was closed down prematurely, A last onMove could be triggered based on requestAnimationFrame()
     if (!trackElement) return null;
@@ -507,7 +523,18 @@ class Range extends React.Component<IProps> {
       if (rtl) {
         newValue = max + min - newValue;
       }
-      if (Math.abs(values[draggedThumbIndex] - newValue) >= step / 2) {
+
+      if (draggedThumbIndex === -1) {
+        this.thumbRefs[0] = React.createRef<HTMLElement>();
+
+        onChange(
+          replaceAt(
+            values,
+            0,
+            this.normalizeValue(newValue, 0)
+          )
+        );
+      } else if (Math.abs(values[draggedThumbIndex] - newValue) >= step / 2) {
         onChange(
           replaceAt(
             values,
